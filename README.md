@@ -1,5 +1,6 @@
 # OnitamAI
-###Introduction
+### Introduction
+
 Simple side project hopefully to practice coding, PyGame, DL and client/server architecture.
 
 Currently, this project is a simple implementation of the Two-player board game Onitama, by designer Shimpei Sato. You can find more information about the (very excellent game) here:
@@ -13,7 +14,8 @@ Future plans for this project include:
 - Implement online p2p play
 - Make everything look less sh**ty
 
-####Dependencies
+#### Dependencies
+
 - PyGame
 
 More dependencies will probably be added as I continue developing this project.
