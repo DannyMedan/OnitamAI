@@ -32,8 +32,27 @@ class GameState:
         card_index = int(curr_player.card_names[1] == card_name)
         self.middle_card = curr_player.replace_card(self.middle_card, card_index)
         self.move_piece(move)
+        self.move_log.append(move)
         self.update_winner()
         self.blue_turn = not self.blue_turn
+
+    def undo_move(self):
+        if len(self.move_log) > 0:
+            move = self.move_log.pop()
+            print(move)
+            self.blue_turn = not self.blue_turn
+            player = self.blue_player if self.blue_turn else self.red_player
+
+            card_idx = player.get_card_index_by_name(move.new_card)
+            if card_idx == -1:
+                self.blue_turn = not self.blue_turn  # Reset state
+                raise IndexError("Lost the card from the last move!")
+            player.card_names[card_idx] = move.used_card
+            self.middle_card = move.new_card
+
+            player.has_won = False  # Just in case, cancel win
+            self.board[move.start_row][move.start_col] = move.piece_moved
+            self.board[move.end_row][move.end_col] = move.piece_captured
 
     def move_piece(self, move):
         if self.board[move.end_row][move.end_col] != EMPTY:
