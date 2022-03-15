@@ -17,5 +17,11 @@ class Player:
         self.card_names[card_index] = new_card
         return old_card
 
+    def get_card_index_by_name(self, card_name):
+        for i, name in enumerate(self.card_names):
+            if name == card_name:
+                return i
+        return -1
+
     def __repr__(self):
         return f'The {self.color} player has {"won" if self.has_won else "not won"}'

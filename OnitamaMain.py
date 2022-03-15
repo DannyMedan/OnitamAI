@@ -210,9 +210,9 @@ def main():
                 position = pg.mouse.get_pos()
                 handle_click(position, gs)
             elif e.type == pg.KEYUP:
-                if e.key == pg.K_p:
-                    print(gs.blue_player)
-                    print(gs.red_player)
+                if e.key == pg.K_z:
+                    print("UNDO!")
+                    gs.undo_move()
 
         if gs.winner is not None:
             print(f"The winner is {gs.winner.color}")
