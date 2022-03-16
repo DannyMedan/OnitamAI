@@ -37,6 +37,7 @@ class GameState:
         self.blue_turn = not self.blue_turn
 
     def undo_move(self):
+        # TODO: clear cyrrent player choices (card/piece)
         if len(self.move_log) > 0:
             move = self.move_log.pop()
             print(move)
