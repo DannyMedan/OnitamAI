@@ -10,7 +10,7 @@ import OnitamaEngine
 from config import *
 
 pg.init()
-selected_sq = ()
+selected_sq = None
 selected_card = None
 player_clicks = []
 valid_moves = []
@@ -41,9 +41,10 @@ def handle_click(position, gs):
     if selected_card and len(player_clicks) == 2:
         move_piece(gs)
     elif selected_card and len(player_clicks) == 1:
-        show_available_moves(gs)
-    elif len(player_clicks) == 1:
-        pass
+        get_available_moves(gs)
+    else:
+        valid_moves = []
+
 
     # if len(player_clicks) == 1 and selected_card:
     #     pass
@@ -57,7 +58,6 @@ def handle_click(position, gs):
 def handle_board_click(position, gs):
     global selected_sq
     global player_clicks
-    global selected_card
     col = (position[0] - BORDER_SIDES) // SQ_SIZE
     row = (position[1] - BORDER_TOP_BOTTOM) // SQ_SIZE
     turn_color = BLUE if gs.blue_turn else RED
@@ -68,7 +68,7 @@ def handle_board_click(position, gs):
             player_clicks.append(selected_sq)
     elif len(player_clicks) == 1:
         if selected_sq == (row, col):
-            selected_sq = ()
+            selected_sq = None
             player_clicks = []
         elif gs.board[row][col][0] == turn_color:
             selected_sq = (row, col)
@@ -98,9 +98,7 @@ def handle_border_click(position, gs):
         selected_card = new_card if selected_card != new_card else None
 
 
-def show_available_moves(gs):
-    global selected_card
-    global selected_sq
+def get_available_moves(gs):
     global valid_moves
     valid_moves = gs.get_valid_moves(selected_card, selected_sq)
 
@@ -115,7 +113,7 @@ def move_piece(game_state):
     for move in valid_moves:
         if move_attempt == move:
             game_state.play_card(selected_card, move_attempt)
-            selected_card, selected_sq, player_clicks, valid_moves = None, (), [], []
+            clear_selections()
             return
 
     player_clicks.pop(-1)
@@ -124,8 +122,8 @@ def move_piece(game_state):
 
 def draw_game_state(screen, gs):
     draw_board(screen)
-    draw_highlights(screen)
-    draw_pieces(screen, gs.board)
+    draw_pieces(screen, gs)
+    draw_moves_highlights(screen)
     draw_cards(screen, gs)
 
 
@@ -141,21 +139,24 @@ def draw_board(screen):
                                              4 * SQ_SIZE + BORDER_TOP_BOTTOM, SQ_SIZE, SQ_SIZE))
 
 
-def draw_highlights(screen):
-    colors = [BOARD_HIGHLIGHT_LIGHT, BOARD_HIGHLIGHT_DARK]
+def draw_moves_highlights(screen):
     for move in valid_moves:
-        pg.draw.rect(screen, colors[(move.end_row + move.end_col) % 2],
-                     pg.Rect(move.end_col * SQ_SIZE + BORDER_SIDES, move.end_row * SQ_SIZE + BORDER_TOP_BOTTOM,
-                             SQ_SIZE, SQ_SIZE))
+        pg.draw.rect(screen, MOVE_HIGHLIGHT_COLOR,
+                     pg.Rect(move.end_col*SQ_SIZE + BORDER_SIDES, move.end_row*SQ_SIZE + BORDER_TOP_BOTTOM,
+                             SQ_SIZE, SQ_SIZE), HIGHLIGHT_WIDTH)
 
 
-def draw_pieces(screen, board):
+def draw_pieces(screen, gs):
     for r in range(DIMENSION):
         for c in range(DIMENSION):
-            piece = board[r][c]
+            piece = gs.get_piece_at((r, c))
             if piece != '--':
                 screen.blit(IMAGES[piece], pg.Rect(c*SQ_SIZE + BORDER_SIDES, r*SQ_SIZE + BORDER_TOP_BOTTOM,
                                                    SQ_SIZE, SQ_SIZE))
+            if len(player_clicks) > 0 and player_clicks[0] == (r, c):
+                pg.draw.rect(screen, BLUE_CARD_BG if gs.blue_turn else RED_CARD_BG,
+                             pg.Rect(c*SQ_SIZE + BORDER_SIDES, r*SQ_SIZE + BORDER_TOP_BOTTOM, SQ_SIZE, SQ_SIZE),
+                             HIGHLIGHT_WIDTH)
 
 
 def draw_cards(screen, game_state):
@@ -184,6 +185,14 @@ def draw_card(screen, location, card_name, bg_color, is_vertical, is_blue_side):
         card_image = pg.transform.rotate(card_image, 180*flip)
         pg.draw.rect(screen, bg_color, pg.Rect(location[1], location[0], CARD_WIDTH, CARD_HEIGHT))
         screen.blit(card_image, pg.Rect(location[1], location[0], CARD_HEIGHT, CARD_WIDTH))
+        if card_name == selected_card:
+            pg.draw.rect(screen, BOARD_BLUE if bg_color == BLUE_CARD_BG else BOARD_RED,
+                         pg.Rect(location[1], location[0], CARD_WIDTH, CARD_HEIGHT), HIGHLIGHT_WIDTH)
+
+
+def clear_selections():
+    global selected_card, selected_sq, player_clicks, valid_moves
+    selected_card, selected_sq, player_clicks, valid_moves = None, None, [], []
 
 
 def print_state():
@@ -213,6 +222,7 @@ def main():
                 if e.key == pg.K_z:
                     print("UNDO!")
                     gs.undo_move()
+                    clear_selections()
 
         if gs.winner is not None:
             print(f"The winner is {gs.winner.color}")
