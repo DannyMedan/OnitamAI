@@ -27,7 +27,7 @@ def load_images():
                                             (TOTAL_WIDTH, TOTAL_HEIGHT))
     for card in CARDS:
         card_image = pg.image.load(f'images/cards/{card}.png')
-        CARDS[card]['IMAGE'] = pg.transform.scale(card_image, card_image.get_size())
+        CARDS[card]['IMAGE'] = pg.transform.scale(card_image, (CARD_HEIGHT-2*HIGHLIGHT_WIDTH, CARD_HEIGHT-2*HIGHLIGHT_WIDTH))
 
 
 def handle_click(position, gs):
@@ -176,15 +176,17 @@ def draw_cards(screen, game_state):
 
 def draw_card(screen, location, card_name, bg_color, is_vertical, is_blue_side):
     card_image = CARDS[card_name]['IMAGE']
+    img_size, _ = card_image.get_size() 
+    centered_img_location = (CARD_HEIGHT-img_size)//2
     flip = int(not is_blue_side)
     if is_vertical:
         card_image = pg.transform.rotate(card_image, 90 + 180*flip)
         pg.draw.rect(screen, bg_color, pg.Rect(location[1], location[0], CARD_HEIGHT, CARD_WIDTH))
-        screen.blit(card_image, pg.Rect(location[1], location[0], CARD_WIDTH, CARD_HEIGHT))
+        screen.blit(card_image, pg.Rect(location[1]+centered_img_location, location[0]+centered_img_location, CARD_WIDTH, CARD_HEIGHT))
     else:
         card_image = pg.transform.rotate(card_image, 180*flip)
         pg.draw.rect(screen, bg_color, pg.Rect(location[1], location[0], CARD_WIDTH, CARD_HEIGHT))
-        screen.blit(card_image, pg.Rect(location[1], location[0], CARD_HEIGHT, CARD_WIDTH))
+        screen.blit(card_image, pg.Rect(location[1]+centered_img_location, location[0]+centered_img_location, CARD_HEIGHT, CARD_WIDTH))
         if card_name == selected_card:
             pg.draw.rect(screen, BOARD_BLUE if bg_color == BLUE_CARD_BG else BOARD_RED,
                          pg.Rect(location[1], location[0], CARD_WIDTH, CARD_HEIGHT), HIGHLIGHT_WIDTH)
